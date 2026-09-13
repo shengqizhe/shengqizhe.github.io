@@ -241,45 +241,17 @@ a { color: inherit; text-decoration: none; }
 }
 .coach-copy .p-lead { margin-top: 2px; }
 
-/* ── 界面示意 B：TalkWise 对话流 ── */
-.tw-bar { display: flex; align-items: center; gap: 7px; padding: 13px 16px;
-          background: #F7F6F4; border-bottom: 1px solid var(--ui-line); }
-.tw-bar i { width: 10px; height: 10px; border-radius: 50%; background: #DCD8D3; display: block; }
-.tw-bar span { margin-left: 12px; font-family: var(--font-mono); font-size: 11.5px; color: #8B857E; }
-.tw-body { display: grid; grid-template-columns: 172px 1fr; min-height: 396px; }
-.tw-side { background: var(--ui-bg); border-right: 1px solid var(--ui-line); padding: 20px 14px; }
-.tw-logo { margin: 0 0 22px 10px; font-weight: 700; font-size: 15px; color: var(--ui-text); }
-.tw-side ul { list-style: none; margin: 0; padding: 0; display: flex; flex-direction: column; gap: 3px; }
-.tw-side li { font-size: 13px; color: var(--ui-muted); padding: 8px 10px; border-radius: 8px; }
-.tw-side li.on { background: var(--ui-text); color: #fff; font-weight: 500; }
-.tw-main { display: flex; flex-direction: column; padding: 20px 22px 18px; }
-.tw-head { font-size: 13px; color: var(--ui-muted); padding-bottom: 13px;
-           border-bottom: 1px solid var(--ui-line); margin-bottom: 16px; }
-.tw-head b { color: var(--ui-text); font-weight: 600; }
-.tw-stream { display: flex; flex-direction: column; gap: 10px; flex: 1; }
-.bubble { padding: 11px 15px; border-radius: 12px; font-size: 13.5px; line-height: 1.62; max-width: 76%; }
-.bubble.me { background: var(--ui-text); color: #fff; align-self: flex-end; }
-.bubble.ai { background: var(--bg-subtle); color: var(--ui-text); align-self: flex-start; }
-.call {
-  display: flex; align-items: center; gap: 10px; flex-wrap: wrap;
-  align-self: flex-start; max-width: 94%; padding: 9px 14px;
-  border: 1px solid var(--ui-line); border-radius: 10px;
-  font-family: var(--font-mono); font-size: 11.5px; color: var(--ui-muted);
+/* ── 界面示意 B：TalkWise 实拍界面（横版通栏） ── */
+.shot-wide { margin: 0; }
+.shot-wide img {
+  width: 100%; height: auto; display: block;
+  border: 1px solid var(--border); border-radius: 14px;
+  box-shadow: var(--shadow-shot);
 }
-.call .fn { color: var(--ui-text); }
-.call .rs { margin-left: auto; }
-.badge { padding: 2px 7px; border-radius: var(--radius-pill); font-size: 10px; letter-spacing: .06em; }
-.badge.rd { background: var(--bg-subtle); color: var(--ui-muted); }
-.badge.wr { background: var(--accent-soft); color: var(--accent); }
-.tw-input {
-  display: flex; align-items: center; justify-content: space-between; gap: 12px;
-  margin-top: 16px; padding: 10px 12px 10px 16px;
-  border: 1px solid var(--ui-line); border-radius: var(--radius-pill);
-  font-size: 13px; color: #A8A29E;
-}
-.tw-input .send {
-  padding: 6px 16px; border-radius: var(--radius-pill);
-  background: var(--ui-text); color: #fff; font-size: 12px; font-weight: 500;
+.shot-wide figcaption {
+  margin-top: 13px;
+  font-family: var(--font-mono); font-size: 11.5px;
+  line-height: 1.65; color: var(--text-muted);
 }
 
 /* ── 其他项目卡片 ── */
@@ -346,11 +318,7 @@ a { color: inherit; text-decoration: none; }
   .nav a:not(.gh) { display: none; }
   .corner.tr, .corner.br { display: none; }
   .hero-foot { margin-top: 40px; }
-  .coach-shot { grid-template-columns: 1fr; gap: 28px; }
-  .tw-body { grid-template-columns: 1fr; min-height: 0; }
-  .tw-side { display: none; }
-  .bubble { max-width: 90%; }
-  .call { max-width: 100%; }}
+  .coach-shot { grid-template-columns: 1fr; gap: 28px; }}
 </style>
 </head>
 <body>
@@ -435,35 +403,11 @@ a { color: inherit; text-decoration: none; }
     <h2 class="p-title">知讲 TalkWise</h2>
     <p class="p-role">大学讲座智能平台 · 三端角色 · Spring Boot 3 + Vue 3</p>
 
-    <div class="cap-top"><b>界面示意</b><span>学生端 AI 助手 · 含工具调用轨迹</span></div>
-
-    <!-- 界面示意：取自 theme.css 的黑白极简语言 -->
-    <div class="mock" role="img"
-         aria-label="知讲 TalkWise 学生端 AI 助手界面示意：左侧导航、右侧对话流，含三次工具调用轨迹（两次 READ、一次 WRITE）">
-      <div class="tw-bar"><i></i><i></i><i></i><span>talkwise / student / ai-assistant</span></div>
-      <div class="tw-body">
-        <aside class="tw-side">
-          <p class="tw-logo">知讲</p>
-          <ul>
-            <li>讲座广场</li>
-            <li>我的报名</li>
-            <li class="on">AI 助手</li>
-            <li>我的评价</li>
-          </ul>
-        </aside>
-        <div class="tw-main">
-          <div class="tw-head"><b>AI 助手</b> · 由 Agent 驱动，可自主调用工具</div>
-          <div class="tw-stream">
-            <div class="bubble me">帮我报名《人工智能前沿》</div>
-            <div class="call"><span class="fn">searchLectures</span><span class="badge rd">READ</span><span class="rs">命中 3 场，含 ID 42</span></div>
-            <div class="call"><span class="fn">getMyRegistrations</span><span class="badge rd">READ</span><span class="rs">无重复报名</span></div>
-            <div class="call"><span class="fn">registerLecture</span><span class="badge wr">WRITE</span><span class="rs">写入成功 · 已记审计</span></div>
-            <div class="bubble ai">已为你报名《人工智能前沿》：9月18日 14:00，A201。</div>
-          </div>
-          <div class="tw-input"><span>说点什么…</span><span class="send">发送</span></div>
-        </div>
-      </div>
-    </div>
+    <figure class="shot-wide">
+      <img src="assets/talkwise-home.png" width="2549" height="1244" loading="lazy"
+           alt="知讲 TalkWise 学生端首页与 AI 助手对话：左侧是「发现下一场值得参加的讲座」搜索入口，右侧 AI 助手面板中用户问「最近软件工程的讲座吗」，助手回复并展示一次「查询讲座」工具调用，列出《ai应用开发》讲座详情（主讲人陈开心、2026-09-14、教学楼A12报告厅、报名 1/97）；随后用户说「帮我报名」，助手确认报名成功">
+      <figcaption>实际界面 · 学生端首页与 AI 助手对话（含工具调用）</figcaption>
+    </figure>
 
     <div class="p-body">
       <p class="p-lead">
