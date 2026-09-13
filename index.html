@@ -220,88 +220,26 @@ a { color: inherit; text-decoration: none; }
   overflow: hidden; background: #fff; box-shadow: var(--shadow-shot);
 }
 
-/* ── 界面示意 A：桌面 AI 操作教练（灵动岛 + 输入坞 + 字幕轨） ── */
-/* 注意：这里只用 aspect-ratio，不叠加 min-height——
-   两者同时存在时浏览器会用 min-height 反推宽度，导致窄屏撑破容器。 */
-.coach-mock { position: relative; aspect-ratio: 16 / 9.2; background: #E7E4DF; }
-.cm-desktop { position: absolute; inset: 0; }
-.cm-win {
-  position: absolute; left: 6%; top: 22%; width: 62%; height: 86%;
-  border-radius: 8px; background: #FDFCFB; border: 1px solid #DCD8D2;
-  box-shadow: 0 12px 30px rgba(60,50,40,.10); overflow: hidden;
+/* ── 界面示意 A：桌面 AI 操作教练（真实界面截图 · 竖版） ── */
+/* 竖版截图若通栏铺满会过高，故采用左图右文的两栏布局 */
+.coach-shot {
+  display: grid;
+  grid-template-columns: minmax(0, 366px) minmax(0, 1fr);
+  gap: 46px;
+  align-items: start;
 }
-.cm-bar { display: flex; align-items: center; gap: 5px; padding: 8px 10px; background: #F2F0EC; border-bottom: 1px solid #E2DED8; }
-.cm-bar i { width: 7px; height: 7px; border-radius: 50%; background: #D6D1CA; display: block; }
-.cm-bar span { margin-left: 8px; font-family: var(--font-mono); font-size: 9.5px; color: #9B958D; }
-.cm-body { display: flex; height: calc(100% - 27px); }
-.cm-pane { flex: 1; padding: 12px; display: flex; flex-direction: column; gap: 8px; border-right: 1px solid #EFEDE8; }
-.cm-pane.is-right { flex: 0 0 34%; border-right: none; background: #FAF9F7; }
-.cm-line { height: 6px; border-radius: 3px; background: #E6E3DE; display: block; }
-.cm-line.w70 { width: 70%; } .cm-line.w60 { width: 60%; } .cm-line.w55 { width: 55%; }
-.cm-line.w45 { width: 45%; } .cm-line.w35 { width: 35%; }
-
-.cm-target {
-  position: absolute; left: 12%; top: 58%; min-width: 34%; padding: 7px 11px;
-  border-radius: 6px; background: rgba(124,156,196,.10);
-  border: 1px solid rgba(124,156,196,.55);
-  font-family: var(--font-mono); font-size: 10px; color: #3E5468;
-  box-shadow: 0 0 0 3px rgba(124,156,196,.12);
+.coach-shot figure { margin: 0; }
+.coach-shot img {
+  width: 100%; height: auto; display: block;
+  border: 1px solid var(--border); border-radius: 14px;
+  box-shadow: var(--shadow-shot);
 }
-.cm-target::after {
-  content: ""; position: absolute; inset: -5px; border-radius: 9px;
-  border: 1px solid rgba(124,156,196,.28); pointer-events: none;
+.coach-shot figcaption {
+  margin-top: 13px;
+  font-family: var(--font-mono); font-size: 11.5px;
+  line-height: 1.65; color: var(--text-muted);
 }
-.cm-pointer {
-  position: absolute; left: 29%; top: 68%; width: 22px; height: 22px;
-  filter: drop-shadow(0 2px 3px rgba(3,7,18,.38)); transform: rotate(-12deg);
-}
-
-.cm-island {
-  position: absolute; top: 20px; left: 50%; transform: translateX(-50%);
-  display: flex; align-items: center; gap: 10px; padding: 9px 14px;
-  border-radius: var(--radius-pill);
-  background: rgba(11,19,34,.86); border: 1px solid rgba(255,255,255,.22);
-  box-shadow: inset 0 1px 0 rgba(255,255,255,.30), 0 10px 26px rgba(3,7,18,.45);
-  backdrop-filter: blur(6px); -webkit-backdrop-filter: blur(6px); white-space: nowrap;
-}
-.cm-dot {
-  width: 7px; height: 7px; border-radius: 50%; flex: 0 0 auto;
-  background: #7C9CC4; box-shadow: 0 0 0 3px rgba(124,156,196,.22);
-}
-.cm-island b { font-family: var(--font-mono); font-size: 10.5px; font-weight: 400;
-               letter-spacing: .04em; color: rgba(255,255,255,.86); }
-.cm-tools { display: flex; gap: 8px; margin-left: 4px; }
-.cm-tools span { font-size: 10px; color: rgba(255,255,255,.55); }
-
-.cm-dock {
-  position: absolute; top: 62px; left: 50%; transform: translateX(-50%);
-  display: flex; align-items: center; gap: 14px; padding: 7px 8px 7px 14px;
-  border-radius: var(--radius-pill);
-  background: rgba(11,19,34,.72); border: 1px solid rgba(255,255,255,.16);
-  box-shadow: 0 8px 20px rgba(3,7,18,.34);
-  backdrop-filter: blur(5px); -webkit-backdrop-filter: blur(5px); white-space: nowrap;
-}
-.cm-dock .ph { font-size: 10.5px; color: rgba(255,255,255,.48); }
-.cm-dock .send {
-  padding: 3px 10px; border-radius: var(--radius-pill);
-  background: rgba(228,184,99,.92); color: #1A1408; font-size: 10px; font-weight: 600;
-}
-
-.cm-rail {
-  position: absolute; right: 4%; top: 40%; width: 34%;
-  display: flex; flex-direction: column; gap: 12px;
-}
-.cm-cap {
-  margin: 0; padding-left: 10px; position: relative;
-  font-size: 10.5px; line-height: 1.55; color: #fff;
-  text-shadow: 0 1px 3px rgba(3,7,18,.85);
-}
-.cm-cap::before {
-  content: ""; position: absolute; left: 0; top: 3px;
-  width: 2px; height: 13px; border-radius: 1px; background: rgba(255,255,255,.45);
-}
-.cm-cap.is-step { color: #E4B863; }
-.cm-cap.is-step::before { background: rgba(228,184,99,.6); }
+.coach-copy .p-lead { margin-top: 2px; }
 
 /* ── 界面示意 B：TalkWise 对话流 ── */
 .tw-bar { display: flex; align-items: center; gap: 7px; padding: 13px 16px;
@@ -408,11 +346,7 @@ a { color: inherit; text-decoration: none; }
   .nav a:not(.gh) { display: none; }
   .corner.tr, .corner.br { display: none; }
   .hero-foot { margin-top: 40px; }
-  .cm-rail { display: none; }
-  /* 窄屏改用更方的比例，给灵动岛和输入坞留出高度 */
-  .coach-mock { aspect-ratio: 5 / 4; }
-  .cm-win { width: 74%; }
-  .cm-target { left: 10%; min-width: 42%; }
+  .coach-shot { grid-template-columns: 1fr; gap: 28px; }
   .tw-body { grid-template-columns: 1fr; min-height: 0; }
   .tw-side { display: none; }
   .bubble { max-width: 90%; }
@@ -464,63 +398,26 @@ a { color: inherit; text-decoration: none; }
 
     <div class="cap-top"><b>界面示意</b><span>灵动岛 · 输入坞 · 右侧字幕轨</span></div>
 
-    <!-- 界面示意：按方案第 4 章的三层结构还原 -->
-    <div class="mock coach-mock" role="img"
-         aria-label="桌面 AI 操作教练界面示意：顶部深色玻璃灵动岛显示采集中与本地缓存时长，下方是提问输入坞，右侧是 AI 字幕轨，桌面上一个编译错误被月光蓝焦点环标出并带有虚拟鼠标">
-      <div class="cm-desktop" aria-hidden="true">
-        <div class="cm-win">
-          <div class="cm-bar"><i></i><i></i><i></i><span>SampleScene — Unity</span></div>
-          <div class="cm-body">
-            <div class="cm-pane">
-              <span class="cm-line w70"></span>
-              <span class="cm-line w45"></span>
-              <span class="cm-line w60"></span>
-            </div>
-            <div class="cm-pane is-right">
-              <span class="cm-line w55"></span>
-              <span class="cm-line w35"></span>
-            </div>
-          </div>
+    <!-- 界面截图：桌面 AI 操作教练（历史会话窗口 + 用户标注箭头） -->
+    <div class="coach-shot">
+      <figure>
+        <img src="assets/desktop-coach.png" width="753" height="1089" loading="lazy"
+             alt="桌面 AI 操作教练实际界面：顶部深色玻璃灵动岛显示「本地缓存 01:00」与箭头、暂停、刷新、历史、设置五个工具图标；下方输入坞带香槟色发送按钮；中部弹出历史会话窗口显示「未命名会话 13:43」与空状态提示「选择上方会话查看详情」；桌面上有两条橙色用户标注箭头">
+        <figcaption>实际界面 · 历史会话窗口与用户标注箭头</figcaption>
+      </figure>
+
+      <div class="coach-copy">
+        <p class="p-lead">
+          用户遇到问题直接提问，系统从本地滚动缓存里取出提问前后的屏幕过程，
+          理解他正在做什么，然后把目标标在<em>真实桌面</em>上，用虚拟鼠标演示一遍。
+          用户自己动手，AI 看新画面确认结果再给下一步。
+        </p>
+        <div class="tags">
+          <span class="tag">Python</span>
+          <span class="tag">PySide6 / Qt Quick</span>
+          <span class="tag">SQLite FTS5</span>
+          <span class="tag">OpenAI 兼容网关</span>
         </div>
-
-        <div class="cm-target">CS1002 ; expected</div>
-
-        <svg class="cm-pointer" viewBox="0 0 24 24">
-          <path d="M5 2.5 L5 19 L9.2 14.9 L11.9 21.2 L14.7 20 L12 13.9 L17.6 13.6 Z"
-                fill="rgba(17,17,17,.92)" stroke="rgba(255,255,255,.85)"
-                stroke-width="1.1" stroke-linejoin="round"/>
-        </svg>
-      </div>
-
-      <div class="cm-island">
-        <span class="cm-dot"></span>
-        <b>采集中 · 本地缓存 01:00</b>
-        <span class="cm-tools"><span>⤢</span><span>✕</span></span>
-      </div>
-
-      <div class="cm-dock">
-        <span class="ph">描述你现在卡住的地方…</span>
-        <span class="send">发送</span>
-      </div>
-
-      <div class="cm-rail">
-        <p class="cm-cap">AI · 拖拽失败前，Console 已经出现编译错误。</p>
-        <p class="cm-cap">AI · 请点击最上方的红色错误。</p>
-        <p class="cm-cap is-step">AI · 当前步骤 1/4</p>
-      </div>
-    </div>
-
-    <div class="p-body">
-      <p class="p-lead">
-        用户遇到问题直接提问，系统从本地滚动缓存里取出提问前后的屏幕过程，
-        理解他正在做什么，然后把目标标在<em>真实桌面</em>上，用虚拟鼠标演示一遍。
-        用户自己动手，AI 看新画面确认结果再给下一步。
-      </p>
-      <div class="tags">
-        <span class="tag">Python</span>
-        <span class="tag">PySide6 / Qt Quick</span>
-        <span class="tag">SQLite FTS5</span>
-        <span class="tag">OpenAI 兼容网关</span>
       </div>
     </div>
 
