@@ -123,6 +123,119 @@ a { color: inherit; text-decoration: none; }
   content: ""; position: absolute; inset: 0; z-index: -1; pointer-events: none;
   background: radial-gradient(90% 60% at 18% 88%, rgba(224,154,110,.07), transparent 62%);
 }
+/* ── 开场区图片墙：深色网格背景上的项目截图轮播 ──
+   三张截图比例差异大（0.69:1 / 2.05:1 / 3.08:1），
+   故每张卡按自身比例定框，cover 即等价于不裁切，界面内容完整。
+   时间轴（10s 一轮）：
+     0-0.8s  淡入堆叠
+     0.8-2s  静止堆叠
+     2.0-3.3s 卡1 放大聚焦  → 3.3-4.0s 归位
+     4.0-5.3s 卡2 放大聚焦  → 5.3-6.0s 归位
+     6.0-7.3s 卡3 放大聚焦  → 7.3-8.0s 归位
+     8.0-10s 全部整齐堆叠成图片墙
+   同一时刻只有一张处于聚焦态；交接处无「全部变暗」的死点。
+   悬停图片区域暂停；系统开启「减少动态效果」时静态展示。 */
+.hero-wall {
+  position: absolute; inset: 0; z-index: 0;
+  pointer-events: none; overflow: hidden;
+  animation: wallIn 1.4s cubic-bezier(.4,0,.2,1) both;
+  -webkit-mask-image: linear-gradient(180deg, transparent 0%, #000 14%, #000 86%, transparent 100%);
+  mask-image: linear-gradient(180deg, transparent 0%, #000 14%, #000 86%, transparent 100%);
+}
+@keyframes wallIn {
+  from { opacity: 0; transform: translateY(14px); }
+  to   { opacity: 1; transform: translateY(0); }
+}
+.wall-stage {
+  position: absolute; left: 50%; top: 39%;
+  width: 0; height: 0;
+  transform: scale(var(--wall-k, 1));
+}
+/* 0×0 锚点无法接收 hover，用一块隐形命中区覆盖堆叠范围 */
+.wall-stage::after {
+  content: ""; position: absolute;
+  left: -400px; top: -270px; width: 800px; height: 540px;
+}
+.wall-stage { pointer-events: auto; }
+/* 父级 pointer-events:none，故直接悬停命中区触发，不依赖祖先 :hover 传递 */
+.wall-stage:hover .wall-card { animation-play-state: paused; }
+
+.wall-card {
+  position: absolute; left: 0; top: 0; margin: 0;
+  border-radius: 10px; overflow: hidden;
+  background: #262322;
+  border: 1px solid rgba(245,243,240,.14);
+  box-shadow: 0 22px 52px rgba(0,0,0,.58), 0 2px 8px rgba(0,0,0,.42);
+  will-change: transform, opacity, filter;
+  animation-duration: 10s;
+  animation-timing-function: cubic-bezier(.4, 0, .2, 1);
+  animation-iteration-count: infinite;
+  animation-fill-mode: both;
+  opacity: 0;
+}
+.wall-card img { display: block; width: 100%; height: 100%; object-fit: cover; }
+
+/* 卡 1：竖版 · 753×1089 → 212×307 */
+.w1 { aspect-ratio: 753 / 1089; height: 212px; z-index: 1; animation-name: wallW1;
+      --stack: translate(-50%,-50%) translate(-96px,-6px) rotate(-7deg) scale(1.3); --z: 1; }
+/* 卡 2：横版 · 2549×1244 → 273×133 */
+.w2 { aspect-ratio: 2549 / 1244; height: 133px; z-index: 2; animation-name: wallW2;
+      --stack: translate(-50%,-50%) translate(16px,34px) rotate(3deg) scale(1.3); --z: 2; }
+/* 卡 3：超宽 · 589×191 → 265×86（原图分辨率有限，放大倍率控制在 1 倍以内） */
+.w3 { aspect-ratio: 589 / 191; height: 86px; z-index: 1; animation-name: wallW3;
+      --stack: translate(-50%,-50%) translate(112px,-64px) rotate(6deg) scale(1.3); --z: 1; }
+
+/* 卡 1：20-33% 聚焦，33-40% 归位；其后两轮聚焦时退暗 */
+@keyframes wallW1 {
+  0%   { opacity: 1; transform: var(--stack); filter: none; z-index: var(--z); }
+  8%   { opacity: 1; transform: var(--stack); filter: none; z-index: var(--z); }
+  18%  { opacity: 1; transform: var(--stack); filter: none; z-index: var(--z); }
+  25%  { opacity: 1; transform: translate(-50%,-50%) translate(0,0) rotate(0deg) scale(2.35); filter: none; z-index: 3; }
+  32%  { opacity: 1; transform: translate(-50%,-50%) translate(0,0) rotate(0deg) scale(2.35); filter: none; z-index: 3; }
+  38%  { opacity: 1; transform: var(--stack); filter: none; z-index: var(--z); }
+  46%  { opacity: .45; transform: var(--stack); filter: blur(2px) brightness(.62); z-index: var(--z); }
+  76%  { opacity: .35; transform: var(--stack); filter: blur(1.6px) brightness(.68); z-index: var(--z); }
+  80%  { opacity: 1; transform: var(--stack); filter: none; z-index: var(--z); }
+  100% { opacity: 1; transform: var(--stack); filter: none; z-index: var(--z); }
+}
+
+/* 卡 2：40-53% 聚焦，53-60% 归位 */
+@keyframes wallW2 {
+  0%   { opacity: 1; transform: var(--stack); filter: none; z-index: var(--z); }
+  8%   { opacity: 1; transform: var(--stack); filter: none; z-index: var(--z); }
+  30%  { opacity: 1; transform: var(--stack); filter: none; z-index: var(--z); }
+  36%  { opacity: 1; transform: translate(-50%,-50%) translate(0,0) rotate(0deg) scale(2.15); filter: none; z-index: 3; }
+  54%  { opacity: 1; transform: translate(-50%,-50%) translate(0,0) rotate(0deg) scale(2.15); filter: none; z-index: 3; }
+  60%  { opacity: 1; transform: var(--stack); filter: none; z-index: var(--z); }
+  66%  { opacity: .45; transform: var(--stack); filter: blur(2px) brightness(.62); z-index: 1; }
+  76%  { opacity: .35; transform: var(--stack); filter: blur(1.6px) brightness(.68); z-index: var(--z); }
+  80%  { opacity: 1; transform: var(--stack); filter: none; z-index: var(--z); }
+  100% { opacity: 1; transform: var(--stack); filter: none; z-index: var(--z); }
+}
+
+/* 卡 3：60-73% 聚焦，73-80% 归位 */
+@keyframes wallW3 {
+  0%   { opacity: 1; transform: var(--stack); filter: none; z-index: var(--z); }
+  8%   { opacity: 1; transform: var(--stack); filter: none; z-index: var(--z); }
+  34%  { opacity: .6;  transform: var(--stack); filter: blur(1.2px) brightness(.78); z-index: 1; }
+  50%  { opacity: .5;  transform: var(--stack); filter: blur(1.4px) brightness(.72); z-index: 1; }
+  56%  { opacity: 1; transform: var(--stack); filter: none; z-index: var(--z); }
+  62%  { opacity: 1; transform: translate(-50%,-50%) translate(0,0) rotate(0deg) scale(2.25); filter: none; z-index: 3; }
+  76%  { opacity: 1; transform: translate(-50%,-50%) translate(0,0) rotate(0deg) scale(2.25); filter: none; z-index: 3; }
+  82%  { opacity: 1; transform: var(--stack); filter: none; z-index: var(--z); }
+  100% { opacity: 1; transform: var(--stack); filter: none; z-index: var(--z); }
+}
+
+/* 图与文重叠处：文本降到 80% 不透明 */
+.hero-inner .hud-line,
+.hero-inner h1 { opacity: .8; }
+
+/* 减少动态效果：静态展示整齐图片墙 */
+@media (prefers-reduced-motion: reduce) {
+  .hero-wall { animation: none !important; }
+  .wall-card { animation: none !important; opacity: 1; filter: none; transform: var(--stack); }
+}
+
 .corner { position: absolute; width: 15px; height: 15px; pointer-events: none; opacity: .5; }
 .corner::before, .corner::after { content: ""; position: absolute; background: var(--dark-muted); }
 .corner::before { width: 15px; height: 1px; }
@@ -300,6 +413,7 @@ a { color: inherit; text-decoration: none; }
 /* ── 响应式 ── */
 @media (max-width: 720px) {
   .hero { padding: 104px 0 52px; min-height: 88svh; }
+  .hero-wall { --wall-k: .6; }
   .section { padding: 64px 0; }
   .section + .section { padding-top: 0; }
   .sub-projects { grid-template-columns: 1fr; }
@@ -327,6 +441,13 @@ a { color: inherit; text-decoration: none; }
 <!-- ══ 开场区 ══ -->
 <section class="hero" id="top">
   <div class="hero-grid" aria-hidden="true"></div>
+  <div class="hero-wall" aria-hidden="true">
+    <div class="wall-stage">
+      <figure class="wall-card w1"><img src="assets/desktop-coach.png" alt="" width="753" height="1089" loading="eager" decoding="async"></figure>
+      <figure class="wall-card w2"><img src="assets/talkwise-home.png" alt="" width="2549" height="1244" loading="eager" decoding="async"></figure>
+      <figure class="wall-card w3"><img src="assets/skillhub-card.png" alt="" width="589" height="191" loading="eager" decoding="async"></figure>
+    </div>
+  </div>
   <span class="corner tl" aria-hidden="true"></span><span class="corner tr" aria-hidden="true"></span>
   <span class="corner bl" aria-hidden="true"></span><span class="corner br" aria-hidden="true"></span>
 
