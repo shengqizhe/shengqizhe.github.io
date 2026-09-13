@@ -1,0 +1,672 @@
+<!DOCTYPE html>
+<html lang="zh-CN">
+<head>
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width, initial-scale=1.0">
+<title>zhishan · 作品集</title>
+<!--
+  个人博客 / 作品集 · 单文件版
+  纯静态：不依赖任何外部资源，双击用浏览器打开即可。
+
+  项目内容：
+    01 桌面 AI 操作教练 —— 内容取自 ai/桌面AI操作教练方案.md 与迭代计划，
+       写的是它的架构与设计取舍。原始文档里若干「已完成 / 已推送提交」的
+       表述与实际情况不符（该工程尚未动工），此处一律未采用，也没有写入
+       任何未经验证的指标或仓库链接。
+    02 知讲 TalkWise —— 内容与代码片段取自 shengqizhe/TalkWise 真实仓库，
+       关键声明已逐行核对（READ/WRITE 分级、审计日志、AgentContext 身份）。
+    03 skill-orchestrator —— 内容取自该技能仓库与已发布版本。
+
+  界面示意是按各自设计语言搭出的示意，不是产品截图。
+-->
+<style>
+/* ─────────────────────────────────────────────────────────────
+   设计令牌
+   浅色区：底色暖白 #F9F7F4（非纯白），卡片纯白 #FFFFFF，
+           正文深墨 #211D1A（15.64:1），文字只用两级。
+   深色区：暖黑 #1C1917，与暖白相邻对比 16.35:1，形成唯一视觉锚点；
+           区内主文字 15.79:1、次级 6.93:1、强调 7.51:1。
+   以上对比度均由脚本实测。
+   ───────────────────────────────────────────────────────────── */
+:root {
+  --bg:            #F9F7F4;
+  --bg-subtle:     #F2F0EC;
+  --surface:       #FFFFFF;
+  --text:          #211D1A;
+  --text-muted:    #6E6762;
+  --border:        #E5E2DE;
+  --border-strong: #D4D0CB;
+  --accent:        #9F4F2F;
+  --accent-soft:   #FBE9DD;
+
+  --dark:          #1C1917;
+  --dark-text:     #F5F3F0;
+  --dark-muted:    #A8A29E;
+  --dark-label:    #C9C4BE;
+  --dark-border:   #3C3937;
+  --dark-surface:  #2E2B2A;
+  --dark-code:     #232120;
+  --dark-accent:   #E09A6E;
+
+  --ui-text:  #111111;
+  --ui-muted: #6E6762;
+  --ui-line:  #E8E5E0;
+  --ui-bg:    #FAF9F7;
+
+  --shadow-sm: 0 1px 2px rgba(58,48,38,.04), 0 2px 8px rgba(58,48,38,.04);
+  --shadow-md: 0 1px 2px rgba(58,48,38,.05), 0 10px 28px rgba(58,48,38,.07);
+  --shadow-shot: 0 2px 6px rgba(58,48,38,.06), 0 24px 56px rgba(58,48,38,.13);
+
+  --radius-card: 16px;
+  --radius-pill: 999px;
+
+  --font-sans: system-ui, -apple-system, "Segoe UI Variable Text", "Segoe UI",
+               "PingFang SC", "Hiragino Sans GB", "Microsoft YaHei UI", "Microsoft YaHei", sans-serif;
+  --font-mono: ui-monospace, SFMono-Regular, "JetBrains Mono", "Cascadia Mono", Consolas, monospace;
+
+  --wrap: 1080px;
+}
+
+*, *::before, *::after { box-sizing: border-box; }
+html { -webkit-text-size-adjust: 100%; scroll-behavior: smooth; }
+body {
+  margin: 0; background: var(--bg); color: var(--text);
+  font-family: var(--font-sans); font-size: 16px; line-height: 1.75;
+  -webkit-font-smoothing: antialiased; -moz-osx-font-smoothing: grayscale;
+}
+.wrap { max-width: var(--wrap); margin: 0 auto; padding: 0 24px; }
+a { color: inherit; text-decoration: none; }
+:focus-visible { outline: 2px solid var(--accent); outline-offset: 3px; border-radius: 4px; }
+
+/* ── 顶栏：开场区透明，滚过后变实底 ── */
+.topbar {
+  position: fixed; inset: 0 0 auto 0; z-index: 50;
+  background: transparent; border-bottom: 1px solid transparent;
+  transition: background-color .28s ease, border-color .28s ease;
+}
+.topbar .wrap { display: flex; align-items: center; justify-content: space-between; height: 64px; }
+.brand { font-family: var(--font-mono); font-size: 14px; letter-spacing: .04em; font-weight: 500;
+         color: var(--dark-text); transition: color .28s ease; }
+.brand span { color: var(--dark-muted); transition: color .28s ease; }
+.nav { display: flex; align-items: center; gap: 26px; }
+.nav a { font-size: 14.5px; color: var(--dark-label); transition: color .28s ease; }
+.nav a:hover { color: #fff; }
+.nav a.gh { font-family: var(--font-mono); font-size: 13.5px; }
+.topbar.is-solid {
+  background: rgba(249,247,244,.88);
+  backdrop-filter: blur(14px) saturate(150%);
+  -webkit-backdrop-filter: blur(14px) saturate(150%);
+  border-bottom-color: var(--border);
+}
+.topbar.is-solid .brand { color: var(--text); }
+.topbar.is-solid .brand span { color: var(--text-muted); }
+.topbar.is-solid .nav a { color: var(--text-muted); }
+.topbar.is-solid .nav a:hover { color: var(--text); }
+
+/* ── 开场区 ── */
+.hero {
+  position: relative; isolation: isolate;
+  min-height: 100svh; display: flex; align-items: flex-end;
+  background: var(--dark); color: var(--dark-text);
+  padding: 120px 0 76px; overflow: hidden;
+}
+.hero-grid {
+  position: absolute; inset: 0; z-index: -2; pointer-events: none;
+  background-image:
+    linear-gradient(rgba(245,243,240,.055) 1px, transparent 1px),
+    linear-gradient(90deg, rgba(245,243,240,.055) 1px, transparent 1px);
+  background-size: 88px 88px;
+  -webkit-mask-image: radial-gradient(130% 95% at 22% 72%, #000 0%, rgba(0,0,0,.35) 52%, transparent 78%);
+  mask-image: radial-gradient(130% 95% at 22% 72%, #000 0%, rgba(0,0,0,.35) 52%, transparent 78%);
+}
+.hero::after {
+  content: ""; position: absolute; inset: 0; z-index: -1; pointer-events: none;
+  background: radial-gradient(90% 60% at 18% 88%, rgba(224,154,110,.07), transparent 62%);
+}
+.corner { position: absolute; width: 15px; height: 15px; pointer-events: none; opacity: .5; }
+.corner::before, .corner::after { content: ""; position: absolute; background: var(--dark-muted); }
+.corner::before { width: 15px; height: 1px; }
+.corner::after { width: 1px; height: 15px; }
+.corner.tl { top: 84px; left: 24px; }
+.corner.tr { top: 84px; right: 24px; }
+.corner.bl { bottom: 30px; left: 24px; }
+.corner.br { bottom: 30px; right: 24px; }
+.corner.tl::before, .corner.tl::after { top: 0; left: 0; }
+.corner.tr::before, .corner.tr::after { top: 0; right: 0; }
+.corner.bl::before, .corner.bl::after { bottom: 0; left: 0; }
+.corner.br::before, .corner.br::after { bottom: 0; right: 0; }
+
+.hero-inner { position: relative; z-index: 1; width: 100%; }
+.hud-line {
+  display: flex; align-items: center; gap: 10px; margin: 0 0 34px;
+  font-family: var(--font-mono); font-size: 11.5px;
+  letter-spacing: .16em; color: var(--dark-muted);
+}
+.hud-line::before {
+  content: ""; flex: 0 0 auto; width: 6px; height: 6px; border-radius: 50%;
+  background: var(--dark-accent);
+}
+.hero h1 {
+  margin: 0; max-width: 17em;
+  font-size: clamp(30px, 4.3vw, 58px);
+  line-height: 1.18; letter-spacing: -.025em; font-weight: 600; color: var(--dark-text);
+}
+.hero-foot {
+  display: flex; align-items: baseline; justify-content: flex-end;
+  margin-top: 54px; padding-top: 22px; border-top: 1px solid var(--dark-border);
+  font-family: var(--font-mono); font-size: 12px; color: var(--dark-muted);
+}
+.scroll-hint { color: var(--dark-accent); letter-spacing: .14em; }
+
+/* ── 白色内容区通用 ── */
+.section { padding: 96px 0; }
+.section + .section { padding-top: 0; }
+.sec-top {
+  display: flex; align-items: center; gap: 12px;
+  padding-bottom: 26px; margin-bottom: 44px; border-bottom: 1px solid var(--border);
+}
+.sec-idx {
+  font-family: var(--font-mono); font-size: 12px;
+  letter-spacing: .12em; text-transform: uppercase; color: var(--accent);
+}
+.sec-kind {
+  padding: 3px 11px; border-radius: var(--radius-pill);
+  background: var(--bg-subtle); color: var(--text-muted);
+  font-size: 11.5px; letter-spacing: .02em;
+}
+.sec-more { margin-left: auto; font-size: 14px; color: var(--text-muted); transition: color 180ms ease-out; }
+.sec-more:hover { color: var(--accent); }
+
+.p-title {
+  margin: 0 0 8px;
+  font-size: clamp(28px, 3.5vw, 44px);
+  line-height: 1.16; letter-spacing: -.025em; font-weight: 600;
+}
+.p-role { margin: 0 0 34px; font-family: var(--font-mono); font-size: 13px; color: var(--text-muted); }
+.p-body { margin-top: 56px; }
+.p-lead { margin: 0 0 28px; max-width: 44em; font-size: 16.5px; line-height: 1.82; color: var(--text-muted); }
+.p-lead em { font-style: normal; color: var(--text); font-weight: 500; }
+
+.tags { display: flex; flex-wrap: wrap; gap: 6px; margin-bottom: 26px; }
+.tag {
+  padding: 4px 11px; border-radius: var(--radius-pill);
+  background: var(--bg-subtle); color: var(--text-muted);
+  font-family: var(--font-mono); font-size: 11.5px;
+}
+
+.actions { display: flex; flex-wrap: wrap; gap: 12px; }
+.btn {
+  display: inline-flex; align-items: center; gap: 8px;
+  padding: 11px 24px; border-radius: var(--radius-pill);
+  font-size: 14.5px; font-weight: 500; border: 1px solid transparent;
+  transition: background-color 180ms ease-out, border-color 180ms ease-out, transform 180ms ease-out;
+}
+.btn-solid { background: var(--text); color: #FCFBFA; }
+.btn-solid:hover { background: #322C27; transform: translateY(-1px); }
+.btn-line { border-color: var(--border-strong); color: var(--text); }
+.btn-line:hover { background: var(--bg-subtle); }
+.btn .arrow { transition: transform 180ms ease-out; }
+.btn:hover .arrow { transform: translateX(3px); }
+
+.cap-top {
+  display: flex; align-items: baseline; gap: 12px; margin: 56px 0 16px;
+  font-family: var(--font-mono); font-size: 11.5px; letter-spacing: .08em; color: var(--text-muted);
+}
+.cap-top b { color: var(--text); font-weight: 500; }
+
+/* ── 界面示意：通用容器 ── */
+.mock {
+  border: 1px solid var(--border); border-radius: 14px;
+  overflow: hidden; background: #fff; box-shadow: var(--shadow-shot);
+}
+
+/* ── 界面示意 A：桌面 AI 操作教练（灵动岛 + 输入坞 + 字幕轨） ── */
+/* 注意：这里只用 aspect-ratio，不叠加 min-height——
+   两者同时存在时浏览器会用 min-height 反推宽度，导致窄屏撑破容器。 */
+.coach-mock { position: relative; aspect-ratio: 16 / 9.2; background: #E7E4DF; }
+.cm-desktop { position: absolute; inset: 0; }
+.cm-win {
+  position: absolute; left: 6%; top: 22%; width: 62%; height: 86%;
+  border-radius: 8px; background: #FDFCFB; border: 1px solid #DCD8D2;
+  box-shadow: 0 12px 30px rgba(60,50,40,.10); overflow: hidden;
+}
+.cm-bar { display: flex; align-items: center; gap: 5px; padding: 8px 10px; background: #F2F0EC; border-bottom: 1px solid #E2DED8; }
+.cm-bar i { width: 7px; height: 7px; border-radius: 50%; background: #D6D1CA; display: block; }
+.cm-bar span { margin-left: 8px; font-family: var(--font-mono); font-size: 9.5px; color: #9B958D; }
+.cm-body { display: flex; height: calc(100% - 27px); }
+.cm-pane { flex: 1; padding: 12px; display: flex; flex-direction: column; gap: 8px; border-right: 1px solid #EFEDE8; }
+.cm-pane.is-right { flex: 0 0 34%; border-right: none; background: #FAF9F7; }
+.cm-line { height: 6px; border-radius: 3px; background: #E6E3DE; display: block; }
+.cm-line.w70 { width: 70%; } .cm-line.w60 { width: 60%; } .cm-line.w55 { width: 55%; }
+.cm-line.w45 { width: 45%; } .cm-line.w35 { width: 35%; }
+
+.cm-target {
+  position: absolute; left: 12%; top: 58%; min-width: 34%; padding: 7px 11px;
+  border-radius: 6px; background: rgba(124,156,196,.10);
+  border: 1px solid rgba(124,156,196,.55);
+  font-family: var(--font-mono); font-size: 10px; color: #3E5468;
+  box-shadow: 0 0 0 3px rgba(124,156,196,.12);
+}
+.cm-target::after {
+  content: ""; position: absolute; inset: -5px; border-radius: 9px;
+  border: 1px solid rgba(124,156,196,.28); pointer-events: none;
+}
+.cm-pointer {
+  position: absolute; left: 29%; top: 68%; width: 22px; height: 22px;
+  filter: drop-shadow(0 2px 3px rgba(3,7,18,.38)); transform: rotate(-12deg);
+}
+
+.cm-island {
+  position: absolute; top: 20px; left: 50%; transform: translateX(-50%);
+  display: flex; align-items: center; gap: 10px; padding: 9px 14px;
+  border-radius: var(--radius-pill);
+  background: rgba(11,19,34,.86); border: 1px solid rgba(255,255,255,.22);
+  box-shadow: inset 0 1px 0 rgba(255,255,255,.30), 0 10px 26px rgba(3,7,18,.45);
+  backdrop-filter: blur(6px); -webkit-backdrop-filter: blur(6px); white-space: nowrap;
+}
+.cm-dot {
+  width: 7px; height: 7px; border-radius: 50%; flex: 0 0 auto;
+  background: #7C9CC4; box-shadow: 0 0 0 3px rgba(124,156,196,.22);
+}
+.cm-island b { font-family: var(--font-mono); font-size: 10.5px; font-weight: 400;
+               letter-spacing: .04em; color: rgba(255,255,255,.86); }
+.cm-tools { display: flex; gap: 8px; margin-left: 4px; }
+.cm-tools span { font-size: 10px; color: rgba(255,255,255,.55); }
+
+.cm-dock {
+  position: absolute; top: 62px; left: 50%; transform: translateX(-50%);
+  display: flex; align-items: center; gap: 14px; padding: 7px 8px 7px 14px;
+  border-radius: var(--radius-pill);
+  background: rgba(11,19,34,.72); border: 1px solid rgba(255,255,255,.16);
+  box-shadow: 0 8px 20px rgba(3,7,18,.34);
+  backdrop-filter: blur(5px); -webkit-backdrop-filter: blur(5px); white-space: nowrap;
+}
+.cm-dock .ph { font-size: 10.5px; color: rgba(255,255,255,.48); }
+.cm-dock .send {
+  padding: 3px 10px; border-radius: var(--radius-pill);
+  background: rgba(228,184,99,.92); color: #1A1408; font-size: 10px; font-weight: 600;
+}
+
+.cm-rail {
+  position: absolute; right: 4%; top: 40%; width: 34%;
+  display: flex; flex-direction: column; gap: 12px;
+}
+.cm-cap {
+  margin: 0; padding-left: 10px; position: relative;
+  font-size: 10.5px; line-height: 1.55; color: #fff;
+  text-shadow: 0 1px 3px rgba(3,7,18,.85);
+}
+.cm-cap::before {
+  content: ""; position: absolute; left: 0; top: 3px;
+  width: 2px; height: 13px; border-radius: 1px; background: rgba(255,255,255,.45);
+}
+.cm-cap.is-step { color: #E4B863; }
+.cm-cap.is-step::before { background: rgba(228,184,99,.6); }
+
+/* ── 界面示意 B：TalkWise 对话流 ── */
+.tw-bar { display: flex; align-items: center; gap: 7px; padding: 13px 16px;
+          background: #F7F6F4; border-bottom: 1px solid var(--ui-line); }
+.tw-bar i { width: 10px; height: 10px; border-radius: 50%; background: #DCD8D3; display: block; }
+.tw-bar span { margin-left: 12px; font-family: var(--font-mono); font-size: 11.5px; color: #8B857E; }
+.tw-body { display: grid; grid-template-columns: 172px 1fr; min-height: 396px; }
+.tw-side { background: var(--ui-bg); border-right: 1px solid var(--ui-line); padding: 20px 14px; }
+.tw-logo { margin: 0 0 22px 10px; font-weight: 700; font-size: 15px; color: var(--ui-text); }
+.tw-side ul { list-style: none; margin: 0; padding: 0; display: flex; flex-direction: column; gap: 3px; }
+.tw-side li { font-size: 13px; color: var(--ui-muted); padding: 8px 10px; border-radius: 8px; }
+.tw-side li.on { background: var(--ui-text); color: #fff; font-weight: 500; }
+.tw-main { display: flex; flex-direction: column; padding: 20px 22px 18px; }
+.tw-head { font-size: 13px; color: var(--ui-muted); padding-bottom: 13px;
+           border-bottom: 1px solid var(--ui-line); margin-bottom: 16px; }
+.tw-head b { color: var(--ui-text); font-weight: 600; }
+.tw-stream { display: flex; flex-direction: column; gap: 10px; flex: 1; }
+.bubble { padding: 11px 15px; border-radius: 12px; font-size: 13.5px; line-height: 1.62; max-width: 76%; }
+.bubble.me { background: var(--ui-text); color: #fff; align-self: flex-end; }
+.bubble.ai { background: var(--bg-subtle); color: var(--ui-text); align-self: flex-start; }
+.call {
+  display: flex; align-items: center; gap: 10px; flex-wrap: wrap;
+  align-self: flex-start; max-width: 94%; padding: 9px 14px;
+  border: 1px solid var(--ui-line); border-radius: 10px;
+  font-family: var(--font-mono); font-size: 11.5px; color: var(--ui-muted);
+}
+.call .fn { color: var(--ui-text); }
+.call .rs { margin-left: auto; }
+.badge { padding: 2px 7px; border-radius: var(--radius-pill); font-size: 10px; letter-spacing: .06em; }
+.badge.rd { background: var(--bg-subtle); color: var(--ui-muted); }
+.badge.wr { background: var(--accent-soft); color: var(--accent); }
+.tw-input {
+  display: flex; align-items: center; justify-content: space-between; gap: 12px;
+  margin-top: 16px; padding: 10px 12px 10px 16px;
+  border: 1px solid var(--ui-line); border-radius: var(--radius-pill);
+  font-size: 13px; color: #A8A29E;
+}
+.tw-input .send {
+  padding: 6px 16px; border-radius: var(--radius-pill);
+  background: var(--ui-text); color: #fff; font-size: 12px; font-weight: 500;
+}
+
+/* ── 其他项目卡片 ── */
+.sub-projects { display: grid; grid-template-columns: 1fr 1fr; gap: 18px; }
+.card {
+  display: flex; flex-direction: column; padding: 0; overflow: hidden;
+  background: var(--surface); border: 1px solid var(--border);
+  border-radius: var(--radius-card); box-shadow: var(--shadow-sm);
+  transition: transform 220ms ease-out, box-shadow 220ms ease-out, border-color 220ms ease-out;
+}
+.card:hover { transform: translateY(-3px); box-shadow: var(--shadow-md); border-color: var(--border-strong); }
+.card-cover {
+  aspect-ratio: 589 / 191; height: auto;
+  display: flex; align-items: center; padding: 0 24px;
+  background-color: var(--bg-subtle); border-bottom: 1px solid var(--border);
+  background-image: repeating-linear-gradient(45deg, transparent 0 7px, rgba(120,100,80,.05) 7px 14px);
+}
+/* 有真实截图的封面：图片本身已含白底与描边，直接铺满即可 */
+.card-cover.has-shot { padding: 0; background-image: none; background-color: #fff; }
+.card-cover.has-shot img { width: 100%; height: 100%; display: block; object-fit: contain; }
+.card-cover .no { font-family: var(--font-mono); font-size: 26px;
+                  letter-spacing: .06em; color: var(--border-strong); font-weight: 500; }
+.card-body { display: flex; flex-direction: column; flex: 1; padding: 22px 24px 24px; }
+.card h3 { margin: 0 0 5px; font-size: 18px; font-weight: 600; letter-spacing: -.01em; }
+.card .sub { margin: 0 0 14px; font-size: 12.5px; color: var(--text-muted); font-family: var(--font-mono); }
+.card p { margin: 0 0 20px; font-size: 14.5px; line-height: 1.72; color: var(--text-muted); }
+.card .tags { margin: auto 0 0; }
+.card .link-go { margin-top: 16px; font-family: var(--font-mono); font-size: 12.5px; color: var(--accent); }
+
+/* ── 页脚 ── */
+.site-footer { border-top: 1px solid var(--border); padding: 56px 0 44px; }
+.contact { display: grid; grid-template-columns: 1fr 1fr; gap: 40px; margin-bottom: 44px; }
+.contact h2 {
+  margin: 0 0 12px; font-family: var(--font-mono); font-size: 12.5px; font-weight: 500;
+  letter-spacing: .1em; text-transform: uppercase; color: var(--text-muted);
+}
+.contact p { margin: 0 0 18px; max-width: 30em; font-size: 14.5px; line-height: 1.72; color: var(--text-muted); }
+.contact-link {
+  display: inline-flex; align-items: center; gap: 8px;
+  font-size: 15.5px; color: var(--accent);
+  border-bottom: 1px solid var(--accent-soft); transition: border-color 180ms ease-out;
+}
+.contact-link:hover { border-bottom-color: var(--accent); }
+.contact-link .arrow { transition: transform 180ms ease-out; }
+.contact-link:hover .arrow { transform: translateX(3px); }
+.copyright { margin: 0; padding-top: 26px; border-top: 1px solid var(--border);
+             font-size: 13.5px; color: var(--text-muted); }
+
+/* ── 入场动画 ── */
+@keyframes rise { from { opacity: 0; transform: translateY(12px); } to { opacity: 1; transform: translateY(0); } }
+.rise { animation: rise 520ms cubic-bezier(.22,.68,.35,1) backwards; }
+.d1 { animation-delay: 60ms; } .d2 { animation-delay: 140ms; }
+.d3 { animation-delay: 220ms; } .d4 { animation-delay: 300ms; }
+@media (prefers-reduced-motion: reduce) { *, *::before, *::after { animation: none !important; transition: none !important; } }
+
+/* ── 响应式 ── */
+@media (max-width: 720px) {
+  .hero { padding: 104px 0 52px; min-height: 88svh; }
+  .section { padding: 64px 0; }
+  .section + .section { padding-top: 0; }
+  .sub-projects { grid-template-columns: 1fr; }
+  .contact { grid-template-columns: 1fr; gap: 32px; }
+  .nav { gap: 16px; }
+  .nav a:not(.gh) { display: none; }
+  .corner.tr, .corner.br { display: none; }
+  .hero-foot { margin-top: 40px; }
+  .cm-rail { display: none; }
+  /* 窄屏改用更方的比例，给灵动岛和输入坞留出高度 */
+  .coach-mock { aspect-ratio: 5 / 4; }
+  .cm-win { width: 74%; }
+  .cm-target { left: 10%; min-width: 42%; }
+  .tw-body { grid-template-columns: 1fr; min-height: 0; }
+  .tw-side { display: none; }
+  .bubble { max-width: 90%; }
+  .call { max-width: 100%; }}
+</style>
+</head>
+<body>
+
+<header class="topbar" id="topbar">
+  <div class="wrap">
+    <a class="brand" href="#top">zhishan<span> / works</span></a>
+    <nav class="nav">
+      <a href="#projects">项目</a>
+      <a href="#about">关于</a>
+      <a class="gh" href="https://github.com/shengqizhe">GitHub ↗</a>
+    </nav>
+  </div>
+</header>
+
+<!-- ══ 开场区 ══ -->
+<section class="hero" id="top">
+  <div class="hero-grid" aria-hidden="true"></div>
+  <span class="corner tl" aria-hidden="true"></span><span class="corner tr" aria-hidden="true"></span>
+  <span class="corner bl" aria-hidden="true"></span><span class="corner br" aria-hidden="true"></span>
+
+  <div class="wrap hero-inner">
+    <p class="hud-line rise d1">PORTFOLIO / 2026</p>
+
+    <h1 class="rise d2">我不让 AI 替我点击，<br>只让它告诉我该点哪里。</h1>
+
+    <div class="hero-foot rise d3">
+      <span class="scroll-hint">SCROLL ↓</span>
+    </div>
+  </div>
+</section>
+
+<main>
+
+<!-- ══ 01 桌面 AI 操作教练 ══ -->
+<section class="section" id="projects">
+  <div class="wrap">
+    <div class="sec-top">
+      <span class="sec-idx">01 / 旗舰项目</span>
+      <span class="sec-kind">Windows 桌面 Agent</span>
+    </div>
+
+    <h2 class="p-title">桌面 AI 操作教练</h2>
+    <p class="p-role">Desktop AI Coach · 运行在桌面最上层的悬浮助手</p>
+
+    <div class="cap-top"><b>界面示意</b><span>灵动岛 · 输入坞 · 右侧字幕轨</span></div>
+
+    <!-- 界面示意：按方案第 4 章的三层结构还原 -->
+    <div class="mock coach-mock" role="img"
+         aria-label="桌面 AI 操作教练界面示意：顶部深色玻璃灵动岛显示采集中与本地缓存时长，下方是提问输入坞，右侧是 AI 字幕轨，桌面上一个编译错误被月光蓝焦点环标出并带有虚拟鼠标">
+      <div class="cm-desktop" aria-hidden="true">
+        <div class="cm-win">
+          <div class="cm-bar"><i></i><i></i><i></i><span>SampleScene — Unity</span></div>
+          <div class="cm-body">
+            <div class="cm-pane">
+              <span class="cm-line w70"></span>
+              <span class="cm-line w45"></span>
+              <span class="cm-line w60"></span>
+            </div>
+            <div class="cm-pane is-right">
+              <span class="cm-line w55"></span>
+              <span class="cm-line w35"></span>
+            </div>
+          </div>
+        </div>
+
+        <div class="cm-target">CS1002 ; expected</div>
+
+        <svg class="cm-pointer" viewBox="0 0 24 24">
+          <path d="M5 2.5 L5 19 L9.2 14.9 L11.9 21.2 L14.7 20 L12 13.9 L17.6 13.6 Z"
+                fill="rgba(17,17,17,.92)" stroke="rgba(255,255,255,.85)"
+                stroke-width="1.1" stroke-linejoin="round"/>
+        </svg>
+      </div>
+
+      <div class="cm-island">
+        <span class="cm-dot"></span>
+        <b>采集中 · 本地缓存 01:00</b>
+        <span class="cm-tools"><span>⤢</span><span>✕</span></span>
+      </div>
+
+      <div class="cm-dock">
+        <span class="ph">描述你现在卡住的地方…</span>
+        <span class="send">发送</span>
+      </div>
+
+      <div class="cm-rail">
+        <p class="cm-cap">AI · 拖拽失败前，Console 已经出现编译错误。</p>
+        <p class="cm-cap">AI · 请点击最上方的红色错误。</p>
+        <p class="cm-cap is-step">AI · 当前步骤 1/4</p>
+      </div>
+    </div>
+
+    <div class="p-body">
+      <p class="p-lead">
+        用户遇到问题直接提问，系统从本地滚动缓存里取出提问前后的屏幕过程，
+        理解他正在做什么，然后把目标标在<em>真实桌面</em>上，用虚拟鼠标演示一遍。
+        用户自己动手，AI 看新画面确认结果再给下一步。
+      </p>
+      <div class="tags">
+        <span class="tag">Python</span>
+        <span class="tag">PySide6 / Qt Quick</span>
+        <span class="tag">SQLite FTS5</span>
+        <span class="tag">OpenAI 兼容网关</span>
+      </div>
+    </div>
+
+  </div>
+</section>
+
+<!-- ══ 02 知讲 TalkWise ══ -->
+<section class="section">
+  <div class="wrap">
+    <div class="sec-top">
+      <span class="sec-idx">02 / 项目</span>
+      <span class="sec-kind">已开源 · 可运行</span>
+    </div>
+
+    <h2 class="p-title">知讲 TalkWise</h2>
+    <p class="p-role">大学讲座智能平台 · 三端角色 · Spring Boot 3 + Vue 3</p>
+
+    <div class="cap-top"><b>界面示意</b><span>学生端 AI 助手 · 含工具调用轨迹</span></div>
+
+    <!-- 界面示意：取自 theme.css 的黑白极简语言 -->
+    <div class="mock" role="img"
+         aria-label="知讲 TalkWise 学生端 AI 助手界面示意：左侧导航、右侧对话流，含三次工具调用轨迹（两次 READ、一次 WRITE）">
+      <div class="tw-bar"><i></i><i></i><i></i><span>talkwise / student / ai-assistant</span></div>
+      <div class="tw-body">
+        <aside class="tw-side">
+          <p class="tw-logo">知讲</p>
+          <ul>
+            <li>讲座广场</li>
+            <li>我的报名</li>
+            <li class="on">AI 助手</li>
+            <li>我的评价</li>
+          </ul>
+        </aside>
+        <div class="tw-main">
+          <div class="tw-head"><b>AI 助手</b> · 由 Agent 驱动，可自主调用工具</div>
+          <div class="tw-stream">
+            <div class="bubble me">帮我报名《人工智能前沿》</div>
+            <div class="call"><span class="fn">searchLectures</span><span class="badge rd">READ</span><span class="rs">命中 3 场，含 ID 42</span></div>
+            <div class="call"><span class="fn">getMyRegistrations</span><span class="badge rd">READ</span><span class="rs">无重复报名</span></div>
+            <div class="call"><span class="fn">registerLecture</span><span class="badge wr">WRITE</span><span class="rs">写入成功 · 已记审计</span></div>
+            <div class="bubble ai">已为你报名《人工智能前沿》：9月18日 14:00，A201。</div>
+          </div>
+          <div class="tw-input"><span>说点什么…</span><span class="send">发送</span></div>
+        </div>
+      </div>
+    </div>
+
+    <div class="p-body">
+      <p class="p-lead">
+        市面上不少「AI 助手」还是关键词匹配拼提示词——<em>看起来智能，其实一步都不会自己走</em>。
+        TalkWise 里换成真 Agent：模型自主决定调用哪个工具、按什么顺序调，代码退到后面，只提供工具集与循环。
+      </p>
+      <div class="tags">
+        <span class="tag">Spring Boot 3</span>
+        <span class="tag">LangChain4j</span>
+        <span class="tag">Sa-Token</span>
+        <span class="tag">Vue 3</span>
+        <span class="tag">MyBatis-Plus</span>
+        <span class="tag">MySQL 8</span>
+      </div>
+      <div class="actions">
+        <a class="btn btn-solid" href="https://github.com/shengqizhe/TalkWise">查看源码 <span class="arrow">→</span></a>
+      </div>
+    </div>
+
+  </div>
+</section>
+
+<!-- ══ 03 其他项目 ══ -->
+<section class="section">
+  <div class="wrap">
+    <div class="sec-top">
+      <span class="sec-idx">03 / 其他</span>
+      <a class="sec-more" href="https://github.com/shengqizhe?tab=repositories">全部仓库 ↗</a>
+    </div>
+
+    <div class="sub-projects">
+      <article class="card">
+        <div class="card-cover has-shot">
+          <img src="assets/skillhub-card.png" width="589" height="191" loading="lazy"
+               alt="skillhub.cn 上的 skill-orchestrator：显示名称「技能编排与需求分析」，已发布，标签 AI Agent，版本 V1.0.1，8 次下载">
+        </div>
+        <div class="card-body">
+          <h3>skill-orchestrator</h3>
+          <p class="sub">AI Agent 技能 · 已发布 skillhub.cn</p>
+          <p>
+            零第三方依赖的 Agent 技能：探测本地技能库、建档索引、按需匹配。
+            机械操作全部下沉到脚本，模型只读一行状态串；技能库内容一律视为不可信输入。
+            省 token 只是表象，真正的好处是行为可预测。
+          </p>
+          <div class="tags">
+            <span class="tag">Python 标准库</span>
+            <span class="tag">零依赖</span>
+          </div>
+          <a class="link-go" href="https://github.com/shengqizhe/skill-orchestrator">查看源码 →</a>
+        </div>
+      </article>
+
+      <a class="card" href="https://github.com/shengqizhe?tab=repositories">
+        <div class="card-cover"><span class="no">04</span></div>
+        <div class="card-body">
+          <h3>更多项目</h3>
+          <p class="sub">github.com/shengqizhe</p>
+          <p>在 GitHub 上查看全部仓库、提交记录与技术文档。</p>
+          <span class="link-go">打开 GitHub →</span>
+        </div>
+      </a>
+    </div>
+  </div>
+</section>
+
+</main>
+
+<footer class="site-footer" id="about">
+  <div class="wrap">
+    <div class="contact">
+      <div>
+        <h2>联系我</h2>
+        <p>有想法、合作或想聊聊 AI，欢迎直接联系我：</p>
+        <a class="contact-link" href="mailto:1719890482@qq.com">1719890482@qq.com</a>
+      </div>
+      <div>
+        <h2>GitHub</h2>
+        <p>对主页技能和项目感兴趣的可以点点 star。</p>
+        <a class="contact-link" href="https://github.com/shengqizhe?tab=repositories">
+          查看全部仓库 <span class="arrow">→</span>
+        </a>
+      </div>
+    </div>
+    <p class="copyright">© 2026 zhishan</p>
+  </div>
+</footer>
+
+<script>
+  // 顶栏：开场区上透明，滚过开场区后变实底
+  (function () {
+    var bar = document.getElementById('topbar');
+    var hero = document.getElementById('top');
+    function sync() {
+      bar.classList.toggle('is-solid', window.scrollY > hero.offsetHeight - 64);
+    }
+    window.addEventListener('scroll', sync, { passive: true });
+    window.addEventListener('resize', sync);
+    sync();
+  })();
+</script>
+
+</body>
+</html>
